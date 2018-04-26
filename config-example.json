@@ -1,0 +1,28 @@
+{
+	"version": "1.0.0",
+	"debug": false,
+	"log_options": {
+		"level": "info",
+		"filename": "./logs/api",
+		"filesize": "1000000",
+		"filecount": "100"
+	},
+	"host": "localhost",
+	"port": 3000,
+	"ws_port": 5020,
+	"skywelld_servers": {
+		"server":"ws://ts5.jingtum.com:5020"
+	},
+	"freezed": {
+		"reserved": 20.0,
+		"each_freezed": 5.0
+	},
+	"mysql_server": {
+		"host": "123.57.219.73",
+		"user": "root",
+		"password": "#gNvZ-FjTAn4yO!v",
+		"database": "apidb"
+	},
+	"base_currency": "SWT",
+	"issuer" : "jGa9J9TkqtBcUoHe2zqhVFFbgUVED6o9or"
+}

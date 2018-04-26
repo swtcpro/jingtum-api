@@ -1,0 +1,41 @@
+{
+  "name": "jingtum-api",
+  "version": "1.0.0",
+  "description": "jingtum api",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://git.jingtum.com/root/jingtum-api.git"
+  },
+  "keywords": [
+    "jingtum",
+    "api",
+    "rest",
+    "lib"
+  ],
+  "author": "Jingtum Inc.",
+  "license": "ISC",
+  "dependencies": {
+    "bignumber.js": "^4.1.0",
+    "body-parser": "^1.17.2",
+    "compression": "^1.6.2",
+    "constants": "^0.0.2",
+    "dateformat": "^2.0.0",
+    "express": "^4.15.3",
+    "https": "^1.0.0",
+    "jayschema": "^0.3.1",
+    "jingtum-lib": "^1.2.7",
+    "moment": "^2.18.1",
+    "morgan": "^1.8.1",
+    "mysql": "^2.14.1",
+    "nconf": "^0.8.4",
+    "node-uuid": "^1.4.8",
+    "safe-json-parse": "^4.0.0",
+    "winston": "^2.3.1",
+    "winston-daily-rotate-file": "^1.4.6",
+    "ws": "^3.1.0"
+  }
+}

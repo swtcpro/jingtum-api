@@ -1,0 +1,7 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ApiVersion",
+  "description": "The expression of api version number",
+  "type": "string",
+  "pattern": "^v[1-2]{1}$"
+}
