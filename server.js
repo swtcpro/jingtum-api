@@ -50,6 +50,6 @@ if (config.get('ssl_enabled')) {
 
 
 var wsServer = new WsServer(wsPort, host, function() {
-	logger.info('ws server listening over UNSECURED WS at port ' + wsPort);
+    logger.info('ws server listening over UNSECURED WS at port ' + wsPort);
 });
 

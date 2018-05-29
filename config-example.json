@@ -24,5 +24,11 @@
 		"database": "apidb"
 	},
 	"base_currency": "SWT",
-	"issuer" : "jGa9J9TkqtBcUoHe2zqhVFFbgUVED6o9or"
+	"issuer" : "jBciDE8Q3uJjf111VeiUNM775AMKHEbBLS",
+	"ssl_enabled": false,
+	"ssl": {
+		"key_path": "./ssl/server.key",
+		"cert_path": "./ssl/server.crt",
+		"reject_unauthorized": false
+	}
 }

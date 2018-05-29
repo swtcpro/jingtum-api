@@ -71,6 +71,7 @@ function getTransaction(req, res, callback) {
                             //delete e.paid;
                         }
                     }
+                    _ret.ledger = result.inLedger;
                     var _data = {transaction:_ret};
                     respond.success(res, _data);
                 }
@@ -79,6 +80,59 @@ function getTransaction(req, res, callback) {
     });
 
 
+}
+
+function getTransaction2(req, res, callback) {
+    if (!remote || !remote.isConnected()) {
+        logger.error(resultCode.N_REMOTE.msg);
+        return callback(new NetworkError(resultCode.N_REMOTE));
+    }
+
+    var hash = req.params.hash;
+    if (!hash || !jutils.isValidHash(hash)) {
+        return callback(new ClientError(resultCode.C_HASH));
+    }
+
+    var tx = remote.requestTx({hash: hash});
+    tx.submit(function (err, result) {
+        if (err) {
+            var error = {};
+            if (err.msg) error = err;
+            else error.msg = err;
+            logger.error('fail to get tx: ' + err);
+            respond.transactionError(res, error);
+        } else {
+            var _ret = jutils.processTx(result, result.Account);
+            _ret.account = result.Account;
+            _ret.ledger = result.inLedger;
+            if (_ret.gets) {
+                utils.taker2pairs(_ret, _ret, _ret.offertype);
+                delete _ret.gets;
+                delete _ret.pays;
+            }
+
+            if (JSON.stringify(_ret.memos) !== '[]') {
+                var m = [];
+                for (var q = 0; q < _ret.memos.length; q++) {
+                    m.push(_ret.memos[q].MemoData);
+                }
+                _ret.memos = m;
+            }
+
+            for (var j = 0; j < _ret.effects.length; j++) {
+                var e = _ret.effects[j];
+                if (e.got || e.gets) {
+                    utils.taker2pairs(e, e, e.type);
+                    delete e.gets;
+                    delete e.pays;
+                    //delete e.got;
+                    //delete e.paid;
+                }
+            }
+            var _data = {transaction: _ret};
+            respond.success(res, _data);
+        }
+    });
 }
 
 function getTransactionList(req, res, callback) {
@@ -187,5 +241,6 @@ function getTransactionList(req, res, callback) {
 
 module.exports={
     getTx: getTransaction,
+    getTx2: getTransaction2,
     getTxs: getTransactionList
 };
