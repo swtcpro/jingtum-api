@@ -36,20 +36,24 @@ function loadSSLConfig() {
     };
 }
 
+var wsServer;
 
 if (config.get('ssl_enabled')) {
     https.createServer(loadSSLConfig(), app).listen(port, host, function() {
         logger.info('server listening over HTTPS at port ' + port);
     });
+    wsServer = new WsServer(loadSSLConfig(), wsPort, host, function() {
+        logger.info('wss server listening over UNSECURED WSS at port ' + wsPort);
+    });
 } else {
     app.listen(port, host, function() {
         logger.warn('server listening over HTTP at port ' + port + '\n');
+    });
+    wsServer = new WsServer(null, wsPort, host, function() {
+        logger.info('ws server listening over UNSECURED WS at port ' + wsPort);
     });
 }
 
 
 
-var wsServer = new WsServer(wsPort, host, function() {
-    logger.info('ws server listening over UNSECURED WS at port ' + wsPort);
-});
 

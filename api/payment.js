@@ -61,6 +61,7 @@ function submitPayment(req, res, callback) {
     paymentObj.secret = req.body.secret;
     paymentObj.payment = req.body.payment;
     paymentObj.client_id = req.body.client_id;
+    paymentObj.sequence = req.body.sequence;
     var validated = req.query.validated;
 
     if(validated && !(validated === 'true' || validated === 'false')){
@@ -70,6 +71,9 @@ function submitPayment(req, res, callback) {
         return callback(new ClientError(resultCode.C_ADDRESS));
     }
 
+    if (paymentObj.sequence && !/^\+?[1-9][0-9]*$/.test(paymentObj.sequence)) {//正整数
+        return callback(new ClientError(resultCode.C_SEQUENCE));
+    }
     if(!paymentObj.secret){
         return callback(new ClientError(resultCode.C_MISSING_SECRET));
     }
@@ -98,6 +102,9 @@ function submitPayment(req, res, callback) {
 
     if(!jutils.isValidAddress(paymentObj.payment.source)){
         return callback(new ClientError(resultCode.C_PAY_SOURCE));
+    }
+    if(req.params.source_address !== paymentObj.payment.source){
+        return callback(new ClientError(resultCode.C_PAY_SOURCE2));
     }
     if(!jutils.isValidAddress(paymentObj.payment.destination)){
         return callback(new ClientError(resultCode.C_PAY_DESTINATION));
@@ -184,6 +191,9 @@ function submitPayment(req, res, callback) {
             }
             if(choices)
                 tx.setPath(paymentObj.payment.choice);
+            if(paymentObj.sequence){
+                tx.setSequence(paymentObj.sequence);
+            }
             tx.submit(function (err, result) {
                 if (err) {
                     var error = {};
@@ -227,7 +237,7 @@ function submitPayment(req, res, callback) {
             respond.transactionError(res, error);
         else{
             var _ret = {};
-            _ret.success = result.engine_result === 'tesSUCCESS';
+            _ret.success = (result.engine_result === 'tesSUCCESS' || result.engine_result === 'terPRE_SEQ');
             _ret.client_id = paymentObj.client_id;
             _ret.hash = result.tx_json.hash;
             _ret.result = result.engine_result;

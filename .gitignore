@@ -1,0 +1,12 @@
+*log*
+node_modules/
+*.sqlite
+.DS_Store
+coverage/
+.idea/
+*.db
+*.bak
+
+test.js
+
+config.json

@@ -18,6 +18,7 @@ function deployContract(req, res, callback) {
     options.amount = req.body.amount;
     options.secret = req.body.secret;
     options.params = req.body.params;
+    options.sequence = req.body.sequence;
     var payload = req.body.payload;
 
     if(!options.secret || !options.amount || !payload){
@@ -39,9 +40,14 @@ function deployContract(req, res, callback) {
     if(options.params && !options.params instanceof Array){
         return callback(new ClientError(resultCode.C_CONTRACT_PARAMS));
     }
+    if (options.sequence && !/^\+?[1-9][0-9]*$/.test(options.sequence)) {//正整数
+        return callback(new ClientError(resultCode.C_SEQUENCE));
+    }
     options.payload = utils.stringToHex(payload);
     var tx = remote.deployContractTx(options);
     tx.setSecret(options.secret);
+    if(options.sequence)
+        tx.setSequence(options.sequence);
     tx.submit(function (err, result) {
         if(err) {
             var error = {};
@@ -66,6 +72,7 @@ function callContract(req, res, callback) {
     options.destination = req.body.destination;
     options.params = req.body.params;
     options.foo = req.body.foo;
+    options.sequence = req.body.sequence;
 
     if(!options.secret || !options.destination || !options.foo){
         return callback(new ClientError(resultCode.C_MISSING_PARAMS));
@@ -85,9 +92,14 @@ function callContract(req, res, callback) {
     if(typeof options.foo !== 'string'){
         return callback(new ClientError(resultCode.C_FOO_TYPE));
     }
+    if (options.sequence && !/^\+?[1-9][0-9]*$/.test(options.sequence)) {//正整数
+        return callback(new ClientError(resultCode.C_SEQUENCE));
+    }
 
     var tx = remote.callContractTx(options);
     tx.setSecret(options.secret);
+    if(options.sequence)
+        tx.setSequence(options.sequence);
     tx.submit(function (err, result) {
         if(err) {
             var error = {};

@@ -22,6 +22,7 @@ function submitOrder(req, res, callback) {
     orderObj.address = req.params.address;
     orderObj.secret = req.body.secret;
     orderObj.order = req.body.order;
+    orderObj.sequence = req.body.sequence;
     if( !jutils.isValidAddress(orderObj.address)){
         return callback(new ClientError(resultCode.C_ADDRESS));
     }
@@ -42,6 +43,9 @@ function submitOrder(req, res, callback) {
     }
     if(orderObj.order && isNaN(orderObj.order.price)){
         return callback(new ClientError(resultCode.C_ORDER_PRICE));
+    }
+    if (orderObj.sequence && !/^\+?[1-9][0-9]*$/.test(orderObj.sequence)) {//正整数
+        return callback(new ClientError(resultCode.C_SEQUENCE));
     }
 
     var pairs = orderObj.order.pair.split('/');
@@ -103,6 +107,8 @@ function submitOrder(req, res, callback) {
     var tx = remote.buildOfferCreateTx({type: new_type,
         source: orderObj.address, taker_pays: taker_pays, taker_gets: taker_gets});
     tx.setSecret(orderObj.secret);
+    if(orderObj.sequence)
+        tx.setSequence(orderObj.sequence);
     tx.submit(function (err, result) {
         if (err) {
             var error = {};
@@ -111,7 +117,7 @@ function submitOrder(req, res, callback) {
             respond.transactionError(res, error);
         }else{
             var _ret = {};
-            _ret.success = result.engine_result === 'tesSUCCESS';
+            _ret.success = (result.engine_result === 'tesSUCCESS' || result.engine_result === 'terPRE_SEQ');
             _ret.hash = result.tx_json.hash;
             _ret.result = result.engine_result;
             _ret.fee = Number(result.tx_json.Fee/1000000);
@@ -130,6 +136,7 @@ function cancelOrder(req, res, callback) {
     orderObj.address = req.params.address;
     orderObj.sequence = req.params.order;
     orderObj.secret  = req.body.secret;
+    orderObj.seq = req.body.sequence;
     if( !jutils.isValidAddress(orderObj.address)){
         return callback(new ClientError(resultCode.C_ADDRESS));
     }
@@ -139,20 +146,28 @@ function cancelOrder(req, res, callback) {
     if(isNaN(orderObj.sequence)){
         return callback(new ClientError(resultCode.C_ORDER_SEQ));
     }
+    if (orderObj.seq && !/^\+?[1-9][0-9]*$/.test(orderObj.seq)) {//正整数
+        return callback(new ClientError(resultCode.C_SEQUENCE));
+    }
 
     var tx = remote.buildOfferCancelTx({source: orderObj.address, sequence: orderObj.sequence});
     tx.setSecret(orderObj.secret);
+    if(orderObj.seq)
+        tx.setSequence(orderObj.seq);
     tx.submit(function (err, result) {
         if (err) {
+            console.log('order result err', err);
             var error = {};
             if(err.msg) error = err;
             else error.msg = err;
             logger.error('fail to cancel order: ' + err);
             respond.transactionError(res, error);
         }else{
+            console.log('order result ', result);
             var _ret = {};
-            _ret.success = result.engine_result === 'tesSUCCESS';
+            _ret.success = (result.engine_result === 'tesSUCCESS' ||  result.engine_result === 'terPRE_SEQ');
             _ret.hash = result.tx_json.hash;
+            _ret.result = result.engine_result;
             _ret.fee = Number(result.tx_json.Fee/1000000);
             _ret.sequence = result.tx_json.Sequence;
             respond.success(res,_ret);
@@ -521,11 +536,11 @@ function process_orderbook_item(items, sell) {
     for (var i = 0; i < items.length; ++i) {
         var item = items[i];
         if (item.sell && sell) {
-            item.price = Number(item.price.value.substr(0, item.price.value.indexOf('.') + 6));  // 卖(ask, true) 进最后一位
+            item.price = Number(item.price.value.substr(0, item.price.value.indexOf('.') + 9));  // 卖(ask, true) 进最后一位
             item.funded = parseFloat(item.taker_gets_funded.value);
             newItems.push(item);
         } else if(!item.sell && !sell){
-            item.price = Number(item.price.value.substr(0, item.price.value.indexOf('.') + 6));// 买(bid, flase) 舍最后一位
+            item.price = Number(item.price.value.substr(0, item.price.value.indexOf('.') + 9));// 买(bid, flase) 舍最后一位
             item.funded = parseFloat(item.taker_pays_funded.value);
             newItems.push(item);
         }
